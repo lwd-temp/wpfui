@@ -559,7 +559,14 @@ public class TitleBar : System.Windows.Controls.Control, IThemeControl
             return;
         }
 
-        _currentWindow.Close();
+        try
+        {
+            _currentWindow.Close();
+        }
+        catch (InvalidOperationException)
+        {
+            // ignored
+        }
     }
 
     private void MinimizeWindow()

@@ -12,12 +12,12 @@ namespace Wpf.Ui.Controls;
 public enum NumberBoxValidationMode
 {
     /// <summary>
-    /// Input validation is disabled.
+    /// Invalid input is replaced by <see cref="NumberBox"/> PlaceholderText text.
     /// </summary>
     InvalidInputOverwritten,
 
     /// <summary>
-    /// Invalid input is replaced by <see cref="NumberBox"/> PlaceholderText text.
+    /// Input validation is disabled.
     /// </summary>
     Disabled
 }

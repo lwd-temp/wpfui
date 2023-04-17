@@ -359,11 +359,14 @@ public class NumberBox : Wpf.Ui.Controls.TextBox
 
         var newValue = Value;
 
-        if (newValue > Maximum)
-            Value = Maximum;
+        if (newValue != null)
+        {
+            if (newValue > Maximum)
+                Value = Maximum;
 
-        if (newValue < Minimum)
-            Value = Minimum;
+            if (newValue < Minimum)
+                Value = Minimum;
+        }
 
         if (newValue != oldValue)
             RaiseEvent(new RoutedEventArgs(ValueChangedEvent));
@@ -433,13 +436,38 @@ public class NumberBox : Wpf.Ui.Controls.TextBox
 
         if (String.IsNullOrEmpty(text))
         {
-            Value = null;
+            switch (ValidationMode)
+            {
+                case NumberBoxValidationMode.InvalidInputOverwritten:
+                    CoerceToPlaceholderText();
+                    break;
+                case NumberBoxValidationMode.Disabled:
+                    Value = null;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             return;
         }
 
         var numberParser = NumberFormatter as INumberParser;
         var value = numberParser!.ParseDouble(text);
+
+        if (value == null)
+        {
+            switch (ValidationMode)
+            {
+                case NumberBoxValidationMode.InvalidInputOverwritten:
+                    CoerceToPlaceholderText();
+                    break;
+                case NumberBoxValidationMode.Disabled:
+                    Value = null;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         if (value == null || Value == value)
         {
@@ -460,6 +488,14 @@ public class NumberBox : Wpf.Ui.Controls.TextBox
     private void MoveCaretToTextEnd()
     {
         CaretIndex = Text.Length;
+    }
+
+    private void CoerceToPlaceholderText()
+    {
+        var numberParser = NumberFormatter as INumberParser;
+        var value = numberParser!.ParseDouble(this.PlaceholderText);
+
+        Value = value;
     }
 
     private INumberFormatter GetRegionalSettingsAwareDecimalFormatter()

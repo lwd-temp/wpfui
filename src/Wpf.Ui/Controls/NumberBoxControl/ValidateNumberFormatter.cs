@@ -35,25 +35,25 @@ public class ValidateNumberFormatter : INumberFormatter, INumberParser
     /// <inheritdoc />
     public double? ParseDouble(string? value)
     {
-        Double.TryParse(value, out double d);
+        var success = Double.TryParse(value, out double d);
 
-        return d;
+        return success ? d : null;
     }
 
     /// <inheritdoc />
     public int? ParseInt(string? value)
     {
-        Int32.TryParse(value, out int i);
+        var success = Int32.TryParse(value, out int i);
 
-        return i;
+        return success ? i : null;
     }
 
     /// <inheritdoc />
     public uint? ParseUInt(string? value)
     {
-        UInt32.TryParse(value, out uint ui);
+        var success = UInt32.TryParse(value, out uint ui);
 
-        return ui;
+        return success ? ui : null;
     }
 
     private static string GetFormatSpecifier()

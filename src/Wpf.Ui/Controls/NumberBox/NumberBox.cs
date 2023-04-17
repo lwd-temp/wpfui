@@ -372,14 +372,13 @@ public class NumberBox : Wpf.Ui.Controls.TextBox
 
         var newValue = Value;
 
-        if (newValue > Maximum)
+        if (newValue != null)
         {
-            SetCurrentValue(ValueProperty, Maximum);
-        }
+            if (newValue > Maximum)
+                SetCurrentValue(ValueProperty, Maximum);
 
-        if (newValue < Minimum)
-        {
-            SetCurrentValue(ValueProperty, Minimum);
+            if (newValue < Minimum)
+                SetCurrentValue(ValueProperty, Minimum);
         }
 
         if (!Equals(newValue, oldValue))
@@ -458,13 +457,38 @@ public class NumberBox : Wpf.Ui.Controls.TextBox
 
         if (String.IsNullOrEmpty(text))
         {
-            SetCurrentValue(ValueProperty, null);
+            switch (ValidationMode)
+            {
+                case NumberBoxValidationMode.InvalidInputOverwritten:
+                    CoerceToPlaceholderText();
+                    break;
+                case NumberBoxValidationMode.Disabled:
+                    SetCurrentValue(ValueProperty, null);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             return;
         }
 
         var numberParser = NumberFormatter as INumberParser;
         var value = numberParser!.ParseDouble(text);
+
+        if (value is null)
+        {
+            switch (ValidationMode)
+            {
+                case NumberBoxValidationMode.InvalidInputOverwritten:
+                    CoerceToPlaceholderText();
+                    break;
+                case NumberBoxValidationMode.Disabled:
+                    SetCurrentValue(ValueProperty, null);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         if (value is null || Equals(Value, value))
         {
@@ -491,6 +515,14 @@ public class NumberBox : Wpf.Ui.Controls.TextBox
     private void MoveCaretToTextEnd()
     {
         CaretIndex = Text.Length;
+    }
+
+    private void CoerceToPlaceholderText()
+    {
+        var numberParser = NumberFormatter as INumberParser;
+        var value = numberParser!.ParseDouble(PlaceholderText);
+
+        Value = value;
     }
 
     private INumberFormatter GetRegionalSettingsAwareDecimalFormatter()

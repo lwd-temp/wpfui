@@ -4,6 +4,7 @@
 // All Rights Reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 
@@ -14,6 +15,8 @@ namespace Wpf.Ui.Appearance;
 /// </summary>
 internal class ResourceDictionaryManager
 {
+    private static readonly Dictionary<Uri, ResourceDictionary> ResourceDictionaryCache = new();
+
     /// <summary>
     /// Namespace, e.g. the library the resource is being searched for.
     /// </summary>
@@ -113,7 +116,15 @@ internal class ResourceDictionaryManager
 
                 if (sourceUri.Contains(SearchNamespace) && sourceUri.Contains(resourceLookup))
                 {
-                    applicationDictionaries[i] = new() { Source = newResourceUri };
+                    if (ResourceDictionaryCache.TryGetValue(newResourceUri, out var dict))
+                    {
+                        applicationDictionaries[i] = dict;
+                    }
+                    else
+                    {
+                        applicationDictionaries[i] = new() { Source = newResourceUri };
+                        ResourceDictionaryCache.Add(newResourceUri, applicationDictionaries[i]);
+                    }
 
                     return true;
                 }
@@ -132,10 +143,16 @@ internal class ResourceDictionaryManager
                 if (!sourceUri.Contains(SearchNamespace) || !sourceUri.Contains(resourceLookup))
                     continue;
 
-                applicationDictionaries[i].MergedDictionaries[j] = new()
+                // applicationDictionaries[i].MergedDictionaries[j] = new() { Source = newResourceUri };
+                if (ResourceDictionaryCache.TryGetValue(newResourceUri, out var dict))
                 {
-                    Source = newResourceUri
-                };
+                    applicationDictionaries[i].MergedDictionaries[j] = dict;
+                }
+                else
+                {
+                    applicationDictionaries[i].MergedDictionaries[j] = new() { Source = newResourceUri };
+                    ResourceDictionaryCache.Add(newResourceUri, applicationDictionaries[i].MergedDictionaries[j]);
+                }
 
                 return true;
             }

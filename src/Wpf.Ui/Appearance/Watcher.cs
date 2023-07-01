@@ -6,6 +6,7 @@
 using System;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
 using Wpf.Ui.Controls;
 
 namespace Wpf.Ui.Appearance;
@@ -18,6 +19,8 @@ namespace Wpf.Ui.Appearance;
 /// </summary>
 public static class Watcher
 {
+    public static event SystemThemeChangedEvent? Updated;
+
     /// <summary>
     /// Gets or sets the background effect for the window uses custom <see cref="WindowBackdropType"/>.
     /// </summary>
@@ -151,6 +154,13 @@ public static class Watcher
     /// <param name="systemTheme"></param>
     private static void UpdateThemes(SystemThemeType systemTheme)
     {
+        Color accentColor = Accent.GetColorizationColor();
+
+        if (AppearanceData.SystemTheme == systemTheme && Accent.SystemAccent == accentColor)
+        {
+            return;
+        }
+
         AppearanceData.SystemTheme = systemTheme;
 
         var themeToSet = ThemeType.Light;
@@ -164,6 +174,8 @@ public static class Watcher
             themeToSet = ThemeType.Dark;
 
         Theme.Apply(themeToSet, BackgroundEffect, UpdateAccents, ForceBackground);
+
+        Updated?.Invoke(themeToSet, accentColor);
 
 #if DEBUG
         System.Diagnostics.Debug.WriteLine(

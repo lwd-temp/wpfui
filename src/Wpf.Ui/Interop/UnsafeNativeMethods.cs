@@ -44,13 +44,17 @@ public static class UnsafeNativeMethods
 
         int pvAttribute = (int)UnsafeReflection.Cast(cornerPreference);
 
-        // TODO: Validate HRESULT
-        Dwmapi.DwmSetWindowAttribute(
-            handle,
-            Dwmapi.DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE,
-            ref pvAttribute,
-            Marshal.SizeOf(typeof(int))
-        );
+        try {
+            // TODO: Validate HRESULT
+            Dwmapi.DwmSetWindowAttribute(
+                handle,
+                Dwmapi.DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE,
+                ref pvAttribute,
+                Marshal.SizeOf(typeof(int))
+            );
+        } catch (Exception) {
+            return false;
+        }
 
         return true;
     }
@@ -82,8 +86,17 @@ public static class UnsafeNativeMethods
         if (!Win32.Utilities.IsOSWindows11Insider1OrNewer)
             dwAttribute = Dwmapi.DWMWINDOWATTRIBUTE.DMWA_USE_IMMERSIVE_DARK_MODE_OLD;
 
-        // TODO: Validate HRESULT
-        Dwmapi.DwmSetWindowAttribute(handle, dwAttribute, ref pvAttribute, Marshal.SizeOf(typeof(int)));
+        try {
+            // TODO: Validate HRESULT
+            Dwmapi.DwmSetWindowAttribute(
+                handle,
+                dwAttribute,
+                ref pvAttribute,
+                Marshal.SizeOf(typeof(int))
+            );
+        } catch (Exception) {
+            return false;
+        }
 
         return true;
     }
@@ -115,8 +128,17 @@ public static class UnsafeNativeMethods
         if (!Win32.Utilities.IsOSWindows11Insider1OrNewer)
             dwAttribute = Dwmapi.DWMWINDOWATTRIBUTE.DMWA_USE_IMMERSIVE_DARK_MODE_OLD;
 
-        // TODO: Validate HRESULT
-        Dwmapi.DwmSetWindowAttribute(handle, dwAttribute, ref pvAttribute, Marshal.SizeOf(typeof(int)));
+        try {
+            // TODO: Validate HRESULT
+            Dwmapi.DwmSetWindowAttribute(
+                handle,
+                dwAttribute,
+                ref pvAttribute,
+                Marshal.SizeOf(typeof(int))
+            );
+        } catch (Exception) {
+            return false;
+        }
 
         return true;
     }
@@ -183,13 +205,17 @@ public static class UnsafeNativeMethods
         if (backdropPvAttribute == (int)Dwmapi.DWMSBT.DWMSBT_DISABLE)
             return false;
 
-        // TODO: Validate HRESULT
-        Dwmapi.DwmSetWindowAttribute(
-            handle,
-            Dwmapi.DWMWINDOWATTRIBUTE.DWMWA_SYSTEMBACKDROP_TYPE,
-            ref backdropPvAttribute,
-            Marshal.SizeOf(typeof(int))
-        );
+        try {
+            // TODO: Validate HRESULT
+            Dwmapi.DwmSetWindowAttribute(
+                handle,
+                Dwmapi.DWMWINDOWATTRIBUTE.DWMWA_SYSTEMBACKDROP_TYPE,
+                ref backdropPvAttribute,
+                Marshal.SizeOf(typeof(int))
+            );
+        } catch (Exception) {
+            return false;
+        }
 
         return true;
     }
@@ -317,11 +343,29 @@ public static class UnsafeNativeMethods
     /// </summary>
     public static Color GetDwmColor()
     {
-        Dwmapi.DwmGetColorizationParameters(out var dwmParams);
+        try
+        {
+            Dwmapi.DwmGetColorizationParameters(out var dwmParams);
 
-        var values = BitConverter.GetBytes(dwmParams.clrColor);
+            var values = BitConverter.GetBytes(dwmParams.clrColor);
 
-        return Color.FromArgb(255, values[2], values[1], values[0]);
+            return Color.FromArgb(
+                255,
+                values[2],
+                values[1],
+                values[0]
+            );
+        }
+        catch (Exception)
+        {
+            return Color.FromArgb(
+                255,
+                59,
+                112,
+                216
+            );
+        }
+
     }
 
     /// <summary>
@@ -421,7 +465,6 @@ public static class UnsafeNativeMethods
             return false;
 
         var windowHandle = new WindowInteropHelper(window).Handle;
-
         return ExtendClientAreaIntoTitleBar(windowHandle);
     }
 
@@ -470,11 +513,15 @@ public static class UnsafeNativeMethods
             cyBottomHeight = (int)Math.Ceiling(deviceGlassThickness.Bottom),
         };
 
-        // #3 Extend client area
-        Interop.Dwmapi.DwmExtendFrameIntoClientArea(hWnd, ref dwmMargin);
+        try {
+            // #3 Extend client area
+            Interop.Dwmapi.DwmExtendFrameIntoClientArea(hWnd, ref dwmMargin);
 
-        // #4 Clear rounding region
-        Interop.User32.SetWindowRgn(hWnd, IntPtr.Zero, Interop.User32.IsWindowVisible(hWnd));
+            // #4 Clear rounding region
+            Interop.User32.SetWindowRgn(hWnd, IntPtr.Zero, Interop.User32.IsWindowVisible(hWnd));
+        } catch (Exception) {
+            return false;
+        }
 
         return true;
     }
